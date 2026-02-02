@@ -53,9 +53,16 @@ export default function ProfilPage() {
               </div>
             )}
             <div>
-              <p className="text-lg font-medium text-gray-900">
-                {session?.user?.name || 'Utilisateur'}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-medium text-gray-900">
+                  {session?.user?.name || 'Utilisateur'}
+                </p>
+                {session?.user?.role === 'admin' && (
+                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                    Admin
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-gray-500">
                 {session?.user?.email}
               </p>

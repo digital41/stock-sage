@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { DepotCard } from '@/components/depots/DepotCard';
 import { LoadingScreen } from '@/components/ui/Spinner';
@@ -16,6 +17,9 @@ async function fetchDepots(): Promise<{ success: boolean; data: DepotWithStats[]
 }
 
 export default function DepotsPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'admin';
+
   const { data, isLoading } = useQuery({
     queryKey: ['depots'],
     queryFn: fetchDepots,
@@ -39,7 +43,7 @@ export default function DepotsPage() {
         ) : (
           <div className="space-y-3">
             {depots.map((depot) => (
-              <DepotCard key={depot.code} depot={depot} />
+              <DepotCard key={depot.code} depot={depot} showValeur={isAdmin} />
             ))}
           </div>
         )}

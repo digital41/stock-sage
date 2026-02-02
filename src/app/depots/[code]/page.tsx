@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { ArrowLeft, Warehouse, Package } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/ui/Card';
@@ -35,7 +36,11 @@ async function fetchDepotStock(
 export default function DepotDetailPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const router = useRouter();
+  const { data: session } = useSession();
   const depotCode = parseInt(code);
+
+  // Vérifier si l'utilisateur est admin
+  const isAdmin = session?.user?.role === 'admin';
 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -173,9 +178,11 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
                       <p className="text-lg font-semibold text-gray-900">
                         {formatQuantity(item.quantite)}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {formatPrice(item.prixVente)}
-                      </p>
+                      {isAdmin && (
+                        <p className="text-xs text-gray-500">
+                          {formatPrice(item.prixVente)}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Card>

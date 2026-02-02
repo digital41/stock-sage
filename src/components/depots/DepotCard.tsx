@@ -9,9 +9,10 @@ import { formatPrice } from '@/lib/utils';
 
 interface DepotCardProps {
   depot: DepotWithStats;
+  showValeur?: boolean; // Pour les admins uniquement
 }
 
-export function DepotCard({ depot }: DepotCardProps) {
+export function DepotCard({ depot, showValeur = false }: DepotCardProps) {
   return (
     <Link href={`/depots/${depot.code}`}>
       <Card variant="bordered" padding="md" className="hover:border-blue-300 hover:shadow-sm transition-all active:scale-[0.99]">
@@ -49,12 +50,14 @@ export function DepotCard({ depot }: DepotCardProps) {
                 </p>
                 <p className="text-xs text-gray-500">articles</p>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-medium text-blue-600">
-                  {formatPrice(depot.valeurStock)}
-                </p>
-                <p className="text-xs text-gray-500">valeur stock</p>
-              </div>
+              {showValeur && (
+                <div className="text-right">
+                  <p className="text-lg font-medium text-blue-600">
+                    {formatPrice(depot.valeurStock)}
+                  </p>
+                  <p className="text-xs text-gray-500">valeur stock</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

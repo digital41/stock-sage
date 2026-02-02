@@ -3,6 +3,7 @@
 import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { ArrowLeft, Package, Warehouse } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/ui/Card';
@@ -25,7 +26,11 @@ async function fetchArticleDetail(reference: string): Promise<{ success: boolean
 export default function ArticleDetailPage({ params }: { params: Promise<{ reference: string }> }) {
   const { reference } = use(params);
   const router = useRouter();
+  const { data: session } = useSession();
   const decodedRef = decodeURIComponent(reference);
+
+  // Vérifier si l'utilisateur est admin
+  const isAdmin = session?.user?.role === 'admin';
 
   const { data, isLoading, error, dataUpdatedAt, refetch, isFetching } = useQuery({
     queryKey: ['article', decodedRef],
@@ -208,19 +213,22 @@ export default function ArticleDetailPage({ params }: { params: Promise<{ refere
           )}
         </Card>
 
-        {/* Prices */}
+        {/* Tarifs */}
         <Card variant="bordered" padding="none" className="overflow-hidden">
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
             <h2 className="font-medium text-gray-900">Tarifs</h2>
           </div>
           <div className="px-4 py-4">
-            <div className="flex gap-8 mb-4">
-              <div>
-                <p className="text-sm text-gray-500">Prix d'achat</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatPrice(article.prixAchat)}
-                </p>
-              </div>
+            <div className={isAdmin ? 'flex gap-8 mb-4' : ''}>
+              {/* Prix d'achat - Admin uniquement */}
+              {isAdmin && (
+                <div>
+                  <p className="text-sm text-gray-500">Prix d'achat</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {formatPrice(article.prixAchat)}
+                  </p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-500">Prix de vente</p>
                 <p className="text-2xl font-bold text-blue-600 mt-1">
@@ -228,25 +236,30 @@ export default function ArticleDetailPage({ params }: { params: Promise<{ refere
                 </p>
               </div>
             </div>
-            <div className="pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-500">Marge</p>
-              <div className="flex items-baseline gap-2 mt-1">
-                <p className={`text-2xl font-bold ${article.prixVente - article.prixAchat >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatPrice(article.prixVente - article.prixAchat)}
-                </p>
-                {article.prixAchat > 0 && (
-                  <p className="text-sm text-gray-500">
-                    ({((article.prixVente - article.prixAchat) / article.prixAchat * 100).toFixed(1)}%)
+            {/* Marge - Admin uniquement */}
+            {isAdmin && (
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-500">Marge</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className={`text-2xl font-bold ${article.prixVente - article.prixAchat >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatPrice(article.prixVente - article.prixAchat)}
                   </p>
-                )}
+                  {article.prixAchat > 0 && (
+                    <p className="text-sm text-gray-500">
+                      ({((article.prixVente - article.prixAchat) / article.prixAchat * 100).toFixed(1)}%)
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {article.codeBarres && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-500">Code-barres</p>
-              <p className="font-mono text-gray-900">{article.codeBarres}</p>
+            <div className="px-4 pb-4">
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-500">Code-barres</p>
+                <p className="font-mono text-gray-900">{article.codeBarres}</p>
+              </div>
             </div>
           )}
         </Card>
