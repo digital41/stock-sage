@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { Package, Loader2, Mail, Lock } from 'lucide-react';
+import { Package, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -15,6 +15,7 @@ function LoginContent() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +30,7 @@ function LoginContent() {
 
   useEffect(() => {
     if (urlError === 'CredentialsSignin') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Email ou mot de passe incorrect');
     }
   }, [urlError]);
@@ -45,7 +47,14 @@ function LoginContent() {
     });
 
     if (result?.error) {
-      setError('Email ou mot de passe incorrect');
+      // Afficher le message d'erreur du rate limiter si present
+      if (result.error.includes('Trop de tentatives') || result.error.includes('bloque')) {
+        setError(result.error);
+      } else if (result.error.includes('tentative')) {
+        setError(result.error);
+      } else {
+        setError('Email ou mot de passe incorrect');
+      }
       setIsLoading(false);
     } else {
       router.push(callbackUrl);
@@ -93,11 +102,25 @@ function LoginContent() {
           />
 
           <Input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mot de passe"
             leftIcon={<Lock className="w-5 h-5" />}
+            rightIcon={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            }
             required
             autoComplete="current-password"
             disabled={isLoading}

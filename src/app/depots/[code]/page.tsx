@@ -4,7 +4,7 @@ import { use, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Warehouse, Package } from 'lucide-react';
+import { ArrowLeft, Warehouse, Package, Check } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -18,10 +18,11 @@ import Link from 'next/link';
 
 async function fetchDepotStock(
   code: number,
-  params: { search: string; page: number; limit: number }
+  params: { search: string; hasStock: boolean; page: number; limit: number }
 ): Promise<{ success: boolean; depot: DepotWithStats; totalArticles: number; data: DepotStockItem[]; meta: PaginatedResponse<DepotStockItem>['meta'] }> {
   const searchParams = new URLSearchParams({
     search: params.search,
+    hasStock: params.hasStock.toString(),
     page: params.page.toString(),
     limit: params.limit.toString(),
   });
@@ -43,26 +44,29 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
   const isAdmin = session?.user?.role === 'admin';
 
   const [search, setSearch] = useState('');
+  const [hasStock, setHasStock] = useState(true);
   const [page, setPage] = useState(1);
   const [allItems, setAllItems] = useState<DepotStockItem[]>([]);
   const limit = 20;
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['depot-stock', depotCode, search, page],
-    queryFn: () => fetchDepotStock(depotCode, { search, page, limit }),
+    queryKey: ['depot-stock', depotCode, search, hasStock, page],
+    queryFn: () => fetchDepotStock(depotCode, { search, hasStock, page, limit }),
     enabled: !isNaN(depotCode),
   });
 
-  // Reset when search changes
+  // Reset when search or hasStock changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
     setAllItems([]);
-  }, [search]);
+  }, [search, hasStock]);
 
   // Accumulate items
   useEffect(() => {
     if (data?.data) {
       if (page === 1) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAllItems(data.data);
       } else {
         setAllItems((prev) => [...prev, ...data.data]);
@@ -148,7 +152,7 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
           </Card>
         )}
 
-        {/* Search */}
+        {/* Search and filters */}
         <div className="sticky top-14 lg:top-0 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1 lg:mx-0 lg:px-0 lg:pt-0 lg:pb-6 lg:bg-transparent lg:static">
           <div className="lg:bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:p-4">
             <ArticleSearch
@@ -157,18 +161,35 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
               placeholder="Rechercher dans ce dépôt..."
             />
 
+            {/* Filter toggle */}
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => setHasStock(!hasStock)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                  hasStock
+                    ? 'bg-blue-50 border-blue-300 text-blue-700'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>En stock uniquement</span>
+                {hasStock && <Check className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
             {data && (
               <p className="text-sm text-gray-500 mt-2 lg:hidden">
-                <span className="font-medium text-blue-600">{data.totalArticles}</span> article{data.totalArticles > 1 ? 's' : ''} au total
-                {search && data.meta.total !== data.totalArticles && (
-                  <span className="text-gray-400"> ({data.meta.total} corresponde{data.meta.total > 1 ? 'nt' : ''} à la recherche)</span>
-                )}
+                <span className="font-medium text-blue-600">{data.meta.total}</span> article{data.meta.total > 1 ? 's' : ''}
+                {hasStock ? ' en stock' : ' au total'}
+                {search && ` pour "${search}"`}
               </p>
             )}
-            {/* Desktop: show filtered count when searching */}
-            {search && data && (
+            {/* Desktop: show filtered count */}
+            {data && (
               <p className="text-sm text-gray-500 mt-2 hidden lg:block">
-                {data.meta.total} article{data.meta.total > 1 ? 's' : ''} corresponde{data.meta.total > 1 ? 'nt' : ''} à "{search}"
+                {data.meta.total} article{data.meta.total > 1 ? 's' : ''}
+                {hasStock ? ' en stock' : ' au total'}
+                {search && ` correspondant à "${search}"`}
               </p>
             )}
           </div>
@@ -180,11 +201,13 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
         ) : allItems.length === 0 ? (
           <EmptyState
             icon="search"
-            title={search ? 'Aucun résultat' : 'Aucun stock'}
+            title={search ? 'Aucun résultat' : (hasStock ? 'Aucun stock' : 'Aucun article')}
             description={
               search
                 ? `Aucun article ne correspond à "${search}"`
-                : 'Ce dépôt ne contient aucun article en stock'
+                : hasStock
+                  ? 'Ce dépôt ne contient aucun article en stock'
+                  : 'Ce dépôt ne contient aucun article'
             }
           />
         ) : (
@@ -237,7 +260,7 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
                   variant="secondary"
                   className="lg:px-8"
                 >
-                  Charger plus d'articles
+                  Charger plus d&apos;articles
                 </Button>
               </div>
             )}

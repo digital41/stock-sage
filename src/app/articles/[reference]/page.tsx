@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingScreen } from '@/components/ui/Spinner';
 import { StockIndicator } from '@/components/articles/StockIndicator';
 import { ArticleDetail } from '@/types';
-import { formatPrice, formatQuantity, stockLevelColors } from '@/lib/utils';
+import { formatPrice, formatQuantity } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react';
 
 async function fetchArticleDetail(reference: string): Promise<{ success: boolean; data: ArticleDetail }> {
@@ -71,7 +71,7 @@ export default function ArticleDetailPage({ params }: { params: Promise<{ refere
         <div className="px-4 py-8 text-center">
           <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg font-medium text-gray-900">Article non trouvé</h2>
-          <p className="text-gray-500 mt-1">La référence "{decodedRef}" n'existe pas.</p>
+          <p className="text-gray-500 mt-1">La référence &quot;{decodedRef}&quot; n&apos;existe pas.</p>
           <Button onClick={() => router.back()} className="mt-4">
             Retour
           </Button>
@@ -245,7 +245,7 @@ export default function ArticleDetailPage({ params }: { params: Promise<{ refere
                   {/* Prix d'achat - Admin uniquement */}
                   {isAdmin && (
                     <div className="pb-4 border-b border-gray-100">
-                      <p className="text-sm text-gray-500">Prix d'achat</p>
+                      <p className="text-sm text-gray-500">Prix d&apos;achat</p>
                       <p className="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
                         {formatPrice(article.prixAchat)}
                       </p>

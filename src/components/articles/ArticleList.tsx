@@ -62,7 +62,7 @@ export function ArticleList({
             variant="secondary"
             className="px-8"
           >
-            Charger plus d'articles
+            Charger plus d&apos;articles
           </Button>
         </div>
       )}

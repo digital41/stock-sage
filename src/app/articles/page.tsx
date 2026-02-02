@@ -107,6 +107,7 @@ function ArticlesContent() {
   useEffect(() => {
     if (data?.data) {
       if (page === 1) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAllArticles(data.data);
       } else {
         setAllArticles((prev) => [...prev, ...data.data]);
@@ -140,8 +141,8 @@ function ArticlesContent() {
         )}
       </div>
 
-      {/* Search bar and filters */}
-      <div className="sticky top-14 lg:top-0 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1 lg:mx-0 lg:px-0 lg:pt-0 lg:pb-6 lg:bg-transparent lg:static">
+      {/* Search bar and filters - Fixed on mobile */}
+      <div className="fixed top-14 left-0 right-0 z-40 bg-gray-50 px-4 pb-3 pt-2 lg:static lg:bg-transparent lg:px-0 lg:pb-6 lg:pt-0">
         <div className="lg:bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:p-4">
           <ArticleSearch
             value={search}
@@ -168,6 +169,8 @@ function ArticlesContent() {
           )}
         </div>
       </div>
+      {/* Spacer for fixed search bar on mobile */}
+      <div className="h-32 lg:hidden" />
 
       {/* Articles list */}
       <ArticleList

@@ -1,9 +1,11 @@
 // ============================================
 // CONFIGURATION NEXTAUTH - LOGIN/MOT DE PASSE
+// Avec protection anti-robot (rate limiting)
 // ============================================
 
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from './rate-limiter';
 
 // Types de rôles disponibles
 export type UserRole = 'admin' | 'user';
@@ -58,18 +60,43 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const email = credentials.email.toLowerCase();
+
+        // Verifier le rate limiting
+        const rateLimitCheck = checkRateLimit(email);
+        if (!rateLimitCheck.allowed) {
+          console.log(`[AUTH] Tentative bloquee pour ${email}: ${rateLimitCheck.message}`);
+          throw new Error(rateLimitCheck.message || 'Trop de tentatives');
+        }
+
+        // Appliquer le delai progressif si necessaire
+        if (rateLimitCheck.delayMs > 0) {
+          await new Promise(resolve => setTimeout(resolve, rateLimitCheck.delayMs));
+        }
+
         const users = getUsers();
         const user = users.find(
-          (u) => u.email.toLowerCase() === credentials.email.toLowerCase() && u.password === credentials.password
+          (u) => u.email.toLowerCase() === email && u.password === credentials.password
         );
 
         if (user) {
+          // Connexion reussie: reinitialiser le rate limit
+          resetRateLimit(email);
+          console.log(`[AUTH] Connexion reussie pour ${email}`);
           return {
             id: user.email,
             email: user.email,
             name: user.name,
             role: user.role,
           };
+        }
+
+        // Echec: enregistrer la tentative
+        const failResult = recordFailedAttempt(email);
+        console.log(`[AUTH] Echec de connexion pour ${email}. Tentatives restantes: ${failResult.remainingAttempts}`);
+
+        if (failResult.message) {
+          throw new Error(failResult.message);
         }
 
         return null;

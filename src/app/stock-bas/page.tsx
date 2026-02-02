@@ -159,6 +159,7 @@ function StockBasContent() {
   useEffect(() => {
     if (data?.data) {
       if (page === 1) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAllArticles(data.data);
       } else {
         setAllArticles((prev) => [...prev, ...data.data]);

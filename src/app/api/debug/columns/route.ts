@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { getSqlPool } from '@/lib/sage-db';
 
 export async function GET() {
+  // Route debug: uniquement en developpement OU pour les admins
+  const session = await getServerSession(authOptions);
+
+  if (process.env.NODE_ENV === 'production') {
+    // En production, seuls les admins peuvent acceder
+    if (!session || session.user.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Acces refuse - Route debug reservee aux administrateurs' },
+        { status: 403 }
+      );
+    }
+  }
+
   try {
     const pool = await getSqlPool();
     if (!pool) {

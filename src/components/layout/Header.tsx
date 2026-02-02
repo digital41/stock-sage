@@ -9,7 +9,10 @@ export function Header() {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 safe-area-top">
+    <>
+      {/* Spacer pour compenser le header fixed */}
+      <div className="h-14" />
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 safe-area-top">
       <div className="flex items-center justify-between px-4 h-14">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -66,5 +69,6 @@ export function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }

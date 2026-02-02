@@ -13,7 +13,6 @@ import {
   isSageConfigValid
 } from '@/lib/sage-db';
 import {
-  Article,
   ArticleWithStock,
   ArticleDetail,
   Depot,
@@ -24,7 +23,6 @@ import {
   ArticleFilters,
   DepotStockFilters,
 } from '@/types';
-import { getStockLevel } from '@/lib/utils';
 
 // Familles à exclure de l'affichage par intitulé (KLY GROUPE)
 const EXCLUDED_FAMILLES_INTITULE = [
@@ -165,6 +163,7 @@ export const SageStockService = {
       const pool = await getSqlPool();
       if (!pool) return [];
 
+      // Sous-requête pour compter les articles actifs avec stock > 0 et hors familles exclues
       const result = await pool.request().query(`
         SELECT
           D.DE_No as code,
@@ -173,13 +172,21 @@ export const SageStockService = {
           D.DE_CodePostal as codePostal,
           D.DE_Ville as ville,
           CASE WHEN D.DE_Principal = 1 THEN 1 ELSE 0 END as principal,
-          COUNT(DISTINCT S.AR_Ref) as nombreArticles,
-          COALESCE(SUM(S.AS_QteSto * A.AR_PrixVen), 0) as valeurStock
+          COALESCE(Stats.nombreArticles, 0) as nombreArticles,
+          COALESCE(Stats.valeurStock, 0) as valeurStock
         FROM ${SAGE_TABLES.DEPOT} D WITH (NOLOCK)
-        LEFT JOIN ${SAGE_TABLES.ARTSTOCK} S WITH (NOLOCK) ON D.DE_No = S.DE_No
-        LEFT JOIN ${SAGE_TABLES.ARTICLE} A WITH (NOLOCK) ON S.AR_Ref = A.AR_Ref
+        LEFT JOIN (
+          SELECT
+            S.DE_No,
+            COUNT(DISTINCT S.AR_Ref) as nombreArticles,
+            SUM(S.AS_QteSto * A.AR_PrixVen) as valeurStock
+          FROM ${SAGE_TABLES.ARTSTOCK} S WITH (NOLOCK)
+          INNER JOIN ${SAGE_TABLES.ARTICLE} A WITH (NOLOCK) ON S.AR_Ref = A.AR_Ref
+          LEFT JOIN ${SAGE_TABLES.FAMILLE} F WITH (NOLOCK) ON A.FA_CodeFamille = F.FA_CodeFamille
+          WHERE A.AR_Sommeil = 0 AND S.AS_QteSto > 0 AND ${getExcludedFamillesClause('F')}
+          GROUP BY S.DE_No
+        ) Stats ON D.DE_No = Stats.DE_No
         WHERE D.DE_No > 0 AND ${getExcludedDepotsClause('D')}
-        GROUP BY D.DE_No, D.DE_Intitule, D.DE_Adresse, D.DE_CodePostal, D.DE_Ville, D.DE_Principal
         ORDER BY D.DE_Principal DESC, D.DE_Intitule
       `);
 
@@ -245,6 +252,7 @@ export const SageStockService = {
              G.SeuilMiniGennevilliers,
              G.HasLowStock
            FROM ${SAGE_TABLES.ARTSTOCK} S WITH (NOLOCK)
+           INNER JOIN ${SAGE_TABLES.DEPOT} D WITH (NOLOCK) ON S.DE_No = D.DE_No
            LEFT JOIN (
              SELECT S2.AR_Ref,
                MAX(S2.AS_QteMini) as SeuilMiniGennevilliers,
@@ -254,6 +262,7 @@ export const SageStockService = {
              WHERE UPPER(D2.DE_Intitule) LIKE '%KLY GENNEVILLIERS%'
              GROUP BY S2.AR_Ref
            ) G ON S.AR_Ref = G.AR_Ref
+           WHERE ${getExcludedDepotsClause('D')}
            GROUP BY S.AR_Ref, G.SeuilMiniGennevilliers, G.HasLowStock`;
 
       // Subquery pour le count - stock bas toujours basé sur KLY Gennevilliers
@@ -269,6 +278,7 @@ export const SageStockService = {
              SUM(S.AS_QteSto) as StockTotal,
              G.HasLowStock
            FROM ${SAGE_TABLES.ARTSTOCK} S WITH (NOLOCK)
+           INNER JOIN ${SAGE_TABLES.DEPOT} D WITH (NOLOCK) ON S.DE_No = D.DE_No
            LEFT JOIN (
              SELECT S2.AR_Ref,
                MAX(CASE WHEN S2.AS_QteMini > 0 AND S2.AS_QteSto > 0 AND S2.AS_QteSto <= S2.AS_QteMini THEN 1 ELSE 0 END) as HasLowStock
@@ -277,6 +287,7 @@ export const SageStockService = {
              WHERE UPPER(D2.DE_Intitule) LIKE '%KLY GENNEVILLIERS%'
              GROUP BY S2.AR_Ref
            ) G ON S.AR_Ref = G.AR_Ref
+           WHERE ${getExcludedDepotsClause('D')}
            GROUP BY S.AR_Ref, G.HasLowStock`;
 
       // Construction WHERE (avec exclusion des familles non désirées)
