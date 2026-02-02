@@ -1,0 +1,19 @@
+services:
+  klystock:
+    image: ghcr.io/digital41/stock-sage:latest
+    container_name: klystock
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - n8n_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.klystock.rule=Host(`stock.srv1014329.hstgr.cloud`)"
+      - "traefik.http.routers.klystock.entrypoints=websecure"
+      - "traefik.http.routers.klystock.tls.certresolver=myresolver"
+      - "traefik.http.services.klystock.loadbalancer.server.port=3000"
+
+networks:
+  n8n_default:
+    external: true
