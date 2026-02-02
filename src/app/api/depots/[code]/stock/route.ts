@@ -33,8 +33,10 @@ export async function GET(
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
 
   try {
-    // Vérifier que le dépôt existe
-    const depot = await SageStockService.getDepotByCode(depotCode);
+    // Récupérer le dépôt avec ses stats (incluant nombreArticles)
+    const depotsWithStats = await SageStockService.getDepotsWithStats();
+    const depot = depotsWithStats.find(d => d.code === depotCode);
+
     if (!depot) {
       return NextResponse.json(
         { success: false, error: 'Dépôt non trouvé' },
@@ -52,6 +54,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       depot,
+      totalArticles: depot.nombreArticles, // Nombre total d'articles dans le dépôt
       ...result,
     });
   } catch (error) {

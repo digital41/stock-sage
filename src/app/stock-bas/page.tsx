@@ -178,11 +178,34 @@ function StockBasContent() {
   const filteredArticles = filterBySeuil(allArticles);
 
   return (
-    <div className="px-4 py-4">
-      {/* Header */}
-      <div className="sticky top-14 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1">
-        {/* Title with icon */}
-        <div className="flex items-center gap-2 mb-3">
+    <div className="px-4 py-4 lg:px-8 lg:py-6">
+      {/* Page header - Desktop */}
+      <div className="hidden lg:flex lg:items-center lg:justify-between lg:mb-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-orange-100 rounded-xl">
+            <AlertTriangle className="w-8 h-8 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Stock Bas</h1>
+            <p className="text-gray-500 mt-1">
+              Articles en dessous du seuil minimum a KLY Gennevilliers
+            </p>
+          </div>
+        </div>
+        {data?.meta && (
+          <div className="text-right bg-orange-50 rounded-xl px-6 py-4 border border-orange-200">
+            <p className="text-3xl font-bold text-orange-600">
+              {(seuil ? filteredArticles.length : data.meta.total).toLocaleString('fr-FR')}
+            </p>
+            <p className="text-sm text-orange-700">articles en alerte</p>
+          </div>
+        )}
+      </div>
+
+      {/* Header - Mobile */}
+      <div className="sticky top-14 lg:top-0 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1 lg:mx-0 lg:px-0 lg:pt-0 lg:pb-6 lg:bg-transparent lg:static">
+        {/* Title with icon - Mobile only */}
+        <div className="flex items-center gap-2 mb-3 lg:hidden">
           <div className="p-2 bg-orange-100 rounded-lg">
             <AlertTriangle className="w-5 h-5 text-orange-600" />
           </div>
@@ -192,15 +215,17 @@ function StockBasContent() {
           </div>
         </div>
 
-        {/* Search */}
-        <ArticleSearch
-          value={search}
-          onChange={handleSearchChange}
-          placeholder="Rechercher par reference ou designation..."
-        />
+        {/* Search and filters container */}
+        <div className="lg:bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:p-4">
+          {/* Search */}
+          <ArticleSearch
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Rechercher par reference ou designation..."
+          />
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 mt-3">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
           {/* Famille dropdown */}
           <div className="relative" ref={familleDropdownRef}>
             <button
@@ -302,15 +327,16 @@ function StockBasContent() {
           )}
         </div>
 
-        {/* Results count */}
-        {data?.meta && (
-          <p className="text-sm text-gray-500 mt-2">
-            <span className="font-medium text-orange-600">
-              {seuil ? filteredArticles.length : data.meta.total}
-            </span> article{(seuil ? filteredArticles.length : data.meta.total) > 1 ? 's' : ''} en stock bas
-            {seuil && ` (filtre par seuil)`}
-          </p>
-        )}
+          {/* Results count - Mobile only */}
+          {data?.meta && (
+            <p className="text-sm text-gray-500 mt-2 lg:hidden">
+              <span className="font-medium text-orange-600">
+                {seuil ? filteredArticles.length : data.meta.total}
+              </span> article{(seuil ? filteredArticles.length : data.meta.total) > 1 ? 's' : ''} en stock bas
+              {seuil && ` (filtre par seuil)`}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Articles list */}

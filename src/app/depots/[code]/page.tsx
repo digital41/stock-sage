@@ -12,14 +12,14 @@ import { Button } from '@/components/ui/Button';
 import { LoadingScreen } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ArticleSearch } from '@/components/articles/ArticleSearch';
-import { Depot, DepotStockItem, PaginatedResponse } from '@/types';
+import { DepotWithStats, DepotStockItem, PaginatedResponse } from '@/types';
 import { formatPrice, formatQuantity } from '@/lib/utils';
 import Link from 'next/link';
 
 async function fetchDepotStock(
   code: number,
   params: { search: string; page: number; limit: number }
-): Promise<{ success: boolean; depot: Depot; data: DepotStockItem[]; meta: PaginatedResponse<DepotStockItem>['meta'] }> {
+): Promise<{ success: boolean; depot: DepotWithStats; totalArticles: number; data: DepotStockItem[]; meta: PaginatedResponse<DepotStockItem>['meta'] }> {
   const searchParams = new URLSearchParams({
     search: params.search,
     page: params.page.toString(),
@@ -95,7 +95,7 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
 
   return (
     <MainLayout>
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 lg:px-8 lg:py-6">
         {/* Back button */}
         <button
           onClick={() => router.back()}
@@ -107,41 +107,71 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
 
         {/* Depot header */}
         {depot && (
-          <Card variant="bordered" padding="md" className="mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Warehouse className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-semibold text-gray-900">
-                    {depot.intitule}
-                  </h1>
-                  {depot.principal && (
-                    <Badge variant="info" size="sm">Principal</Badge>
+          <Card variant="bordered" padding="md" className="mb-4 lg:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 lg:gap-4">
+                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Warehouse className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">
+                      {depot.intitule}
+                    </h1>
+                    {depot.principal && (
+                      <Badge variant="info" size="sm">Principal</Badge>
+                    )}
+                  </div>
+                  {depot.ville && (
+                    <p className="text-sm lg:text-base text-gray-500">{depot.ville}</p>
                   )}
                 </div>
-                {depot.ville && (
-                  <p className="text-sm text-gray-500">{depot.ville}</p>
-                )}
               </div>
+              {/* Desktop stats */}
+              {data && (
+                <div className="hidden lg:flex lg:items-center lg:gap-6">
+                  <div className="text-right bg-gray-50 rounded-xl px-6 py-4">
+                    <p className="text-3xl font-bold text-blue-600">{data.totalArticles.toLocaleString('fr-FR')}</p>
+                    <p className="text-sm text-gray-500">articles au total</p>
+                  </div>
+                  {isAdmin && depot.valeurStock !== undefined && (
+                    <div className="text-right bg-gray-50 rounded-xl px-6 py-4">
+                      <p className="text-3xl font-bold text-green-600">
+                        {depot.valeurStock.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}
+                      </p>
+                      <p className="text-sm text-gray-500">valeur du stock</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </Card>
         )}
 
         {/* Search */}
-        <div className="sticky top-14 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1">
-          <ArticleSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Rechercher dans ce dépôt..."
-          />
+        <div className="sticky top-14 lg:top-0 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1 lg:mx-0 lg:px-0 lg:pt-0 lg:pb-6 lg:bg-transparent lg:static">
+          <div className="lg:bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:p-4">
+            <ArticleSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Rechercher dans ce dépôt..."
+            />
 
-          {data?.meta && (
-            <p className="text-sm text-gray-500 mt-2">
-              {data.meta.total} article{data.meta.total > 1 ? 's' : ''} en stock
-            </p>
-          )}
+            {data && (
+              <p className="text-sm text-gray-500 mt-2 lg:hidden">
+                <span className="font-medium text-blue-600">{data.totalArticles}</span> article{data.totalArticles > 1 ? 's' : ''} au total
+                {search && data.meta.total !== data.totalArticles && (
+                  <span className="text-gray-400"> ({data.meta.total} corresponde{data.meta.total > 1 ? 'nt' : ''} à la recherche)</span>
+                )}
+              </p>
+            )}
+            {/* Desktop: show filtered count when searching */}
+            {search && data && (
+              <p className="text-sm text-gray-500 mt-2 hidden lg:block">
+                {data.meta.total} article{data.meta.total > 1 ? 's' : ''} corresponde{data.meta.total > 1 ? 'nt' : ''} à "{search}"
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Stock list */}
@@ -158,49 +188,60 @@ export default function DepotDetailPage({ params }: { params: Promise<{ code: st
             }
           />
         ) : (
-          <div className="space-y-2">
-            {allItems.map((item, index) => (
-              <Link
-                key={`${item.article.reference}-${index}`}
-                href={`/articles/${encodeURIComponent(item.article.reference)}`}
-              >
-                <Card variant="bordered" padding="sm" className="hover:border-blue-300 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-xs text-blue-600 truncate">
-                        {item.article.reference}
-                      </p>
-                      <p className="text-sm text-gray-900 truncate">
-                        {item.article.designation}
-                      </p>
-                    </div>
-                    <div className="text-right ml-3">
-                      <p className="text-lg font-semibold text-gray-900">
-                        {formatQuantity(item.quantite)}
-                      </p>
-                      {isAdmin && (
-                        <p className="text-xs text-gray-500">
-                          {formatPrice(item.prixVente)}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 lg:gap-4">
+              {allItems.map((item, index) => (
+                <Link
+                  key={`${item.article.reference}-${index}`}
+                  href={`/articles/${encodeURIComponent(item.article.reference)}`}
+                >
+                  <Card variant="bordered" padding="sm" className="hover:border-blue-300 transition-colors lg:p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-xs lg:text-sm text-blue-600 truncate">
+                          {item.article.reference}
                         </p>
-                      )}
+                        <p className="text-sm lg:text-base text-gray-900 truncate">
+                          {item.article.designation}
+                        </p>
+                        {item.article.famille && (
+                          <p className="text-xs text-gray-400 mt-0.5 hidden lg:block truncate">
+                            {item.article.famille}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right ml-3">
+                        <p className="text-lg lg:text-xl font-semibold text-gray-900">
+                          {formatQuantity(item.quantite)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Dispo: {formatQuantity(item.disponible)}
+                        </p>
+                        {isAdmin && (
+                          <p className="text-xs text-green-600 font-medium mt-0.5">
+                            {formatPrice(item.prixVente)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              </Link>
-            ))}
+                  </Card>
+                </Link>
+              ))}
+            </div>
 
             {hasMore && (
-              <div className="py-4 text-center">
+              <div className="py-6 text-center">
                 <Button
                   onClick={handleLoadMore}
                   isLoading={isFetching && page > 1}
                   variant="secondary"
+                  className="lg:px-8"
                 >
-                  Charger plus
+                  Charger plus d'articles
                 </Button>
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </MainLayout>

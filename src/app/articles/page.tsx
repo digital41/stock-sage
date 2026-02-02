@@ -123,32 +123,50 @@ function ArticlesContent() {
   const hasMore = data?.meta ? page < data.meta.totalPages : false;
 
   return (
-    <div className="px-4 py-4">
-      {/* Search bar and filters */}
-      <div className="sticky top-14 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1">
-        <ArticleSearch
-          value={search}
-          onChange={handleSearchChange}
-          placeholder="Rechercher par référence ou désignation..."
-        />
-
-        {/* Filters */}
-        <ArticleFilters
-          famille={famille}
-          onFamilleChange={handleFamilleChange}
-          hasStock={hasStock}
-          onHasStockChange={handleHasStockChange}
-          gennevilliersOnly={gennevilliersOnly}
-          onGennevilliersOnlyChange={handleGennevilliersOnlyChange}
-        />
-
-        {/* Results count */}
-        {data?.meta && (
-          <p className="text-sm text-gray-500 mt-2">
-            {data.meta.total} article{data.meta.total > 1 ? 's' : ''} trouvé{data.meta.total > 1 ? 's' : ''}
-            {gennevilliersOnly && ' à Gennevilliers'}
+    <div className="px-4 py-4 lg:px-8 lg:py-6">
+      {/* Page header - Desktop */}
+      <div className="hidden lg:flex lg:items-center lg:justify-between lg:mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
+          <p className="text-gray-500 mt-1">
+            Consultez et recherchez les articles en stock
           </p>
+        </div>
+        {data?.meta && (
+          <div className="text-right bg-white rounded-xl px-6 py-4 border border-gray-200">
+            <p className="text-3xl font-bold text-blue-600">{data.meta.total.toLocaleString('fr-FR')}</p>
+            <p className="text-sm text-gray-500">articles{gennevilliersOnly && ' a Gennevilliers'}</p>
+          </div>
         )}
+      </div>
+
+      {/* Search bar and filters */}
+      <div className="sticky top-14 lg:top-0 z-40 bg-gray-50 pb-4 -mx-4 px-4 pt-1 lg:mx-0 lg:px-0 lg:pt-0 lg:pb-6 lg:bg-transparent lg:static">
+        <div className="lg:bg-white lg:rounded-xl lg:border lg:border-gray-200 lg:p-4">
+          <ArticleSearch
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Rechercher par référence ou désignation..."
+          />
+
+          {/* Filters */}
+          <ArticleFilters
+            famille={famille}
+            onFamilleChange={handleFamilleChange}
+            hasStock={hasStock}
+            onHasStockChange={handleHasStockChange}
+            gennevilliersOnly={gennevilliersOnly}
+            onGennevilliersOnlyChange={handleGennevilliersOnlyChange}
+          />
+
+          {/* Results count - Mobile only */}
+          {data?.meta && (
+            <p className="text-sm text-gray-500 mt-2 lg:hidden">
+              {data.meta.total} article{data.meta.total > 1 ? 's' : ''} trouve{data.meta.total > 1 ? 's' : ''}
+              {gennevilliersOnly && ' a Gennevilliers'}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Articles list */}

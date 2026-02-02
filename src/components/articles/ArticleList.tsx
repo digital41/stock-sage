@@ -46,19 +46,23 @@ export function ArticleList({
   }
 
   return (
-    <div className="space-y-3">
-      {articles.map((article) => (
-        <ArticleCard key={article.reference} article={article} showSeuilMini={showSeuilMini} />
-      ))}
+    <div>
+      {/* Grid responsive: 1 col mobile, 2 cols tablette, 3 cols desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
+        {articles.map((article) => (
+          <ArticleCard key={article.reference} article={article} showSeuilMini={showSeuilMini} />
+        ))}
+      </div>
 
       {hasMore && (
-        <div className="py-4 text-center">
+        <div className="py-6 text-center">
           <Button
             onClick={onLoadMore}
             isLoading={isLoadingMore}
             variant="secondary"
+            className="px-8"
           >
-            Charger plus
+            Charger plus d'articles
           </Button>
         </div>
       )}
