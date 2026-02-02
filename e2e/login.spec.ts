@@ -27,7 +27,11 @@ test.describe('Login Page', () => {
     await expect(passwordInput).toHaveAttribute('type', 'password');
 
     // Click eye icon to show password
-    await page.locator('button').filter({ has: page.locator('svg') }).last().click();
+    await page.getByLabel('Afficher le mot de passe').click();
     await expect(passwordInput).toHaveAttribute('type', 'text');
+
+    // Click again to hide password
+    await page.getByLabel('Masquer le mot de passe').click();
+    await expect(passwordInput).toHaveAttribute('type', 'password');
   });
 });

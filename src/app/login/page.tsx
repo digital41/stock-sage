@@ -112,6 +112,7 @@ function LoginContent() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 tabIndex={-1}
               >
                 {showPassword ? (
