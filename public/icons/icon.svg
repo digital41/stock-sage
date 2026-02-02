@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="64" fill="#2563eb"/>
+  <g fill="white">
+    <!-- Box/Package icon -->
+    <path d="M256 80L128 144v112l128 64 128-64V144L256 80zm0 32l96 48-96 48-96-48 96-48z"/>
+    <path d="M128 176v96l128 64 128-64v-96l-128 64-128-64z" opacity="0.7"/>
+    <!-- Stock bars -->
+    <rect x="144" y="336" width="48" height="96" rx="8"/>
+    <rect x="232" y="304" width="48" height="128" rx="8"/>
+    <rect x="320" y="352" width="48" height="80" rx="8"/>
+  </g>
+</svg>
