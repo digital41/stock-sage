@@ -1,6 +1,6 @@
 {
-  "name": "Stock Sage 100",
-  "short_name": "Stock Sage",
+  "name": "KlyStock",
+  "short_name": "KlyStock",
   "description": "Application de consultation du stock Sage 100",
   "start_url": "/",
   "display": "standalone",

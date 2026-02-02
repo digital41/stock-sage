@@ -53,6 +53,7 @@ export default function ProfilPage() {
             <Card variant="bordered" padding="md" className="lg:p-6">
               <div className="flex items-center gap-4">
                 {session?.user?.image ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={session.user.image}
                     alt={session.user.name || 'User'}
@@ -139,7 +140,7 @@ export default function ProfilPage() {
             <Card variant="bordered" padding="md" className="lg:p-6">
               <h3 className="font-medium text-gray-900 mb-3 hidden lg:block">A propos</h3>
               <div className="text-center lg:text-left text-sm text-gray-500">
-                <p className="font-medium text-gray-700">Stock Sage 100</p>
+                <p className="font-medium text-gray-700">KlyStock</p>
                 <p>Version 1.0.0</p>
                 <p className="mt-2 text-xs text-gray-400">Application de consultation de stock</p>
               </div>

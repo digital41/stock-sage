@@ -77,7 +77,7 @@ function LoginContent() {
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <Package className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Stock Sage 100</h1>
+          <h1 className="text-2xl font-bold text-gray-900">KlyStock</h1>
           <p className="text-gray-500 mt-1">Consultation du stock en temps reel</p>
         </div>
 

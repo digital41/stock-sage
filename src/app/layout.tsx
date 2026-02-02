@@ -9,13 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Stock Sage 100',
+  title: 'KlyStock',
   description: 'Application de consultation du stock Sage 100',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Stock Sage',
+    title: 'KlyStock',
   },
 };
 

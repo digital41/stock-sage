@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Config files
+    "jest.config.cjs",
+    "playwright.config.ts",
   ]),
 ]);
 
