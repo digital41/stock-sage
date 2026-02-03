@@ -169,8 +169,8 @@ function ArticlesContent() {
           )}
         </div>
       </div>
-      {/* Spacer for fixed search bar on mobile */}
-      <div className="h-32 lg:hidden" />
+      {/* Spacer for fixed search bar on mobile - increased height for filters */}
+      <div className="h-40 lg:hidden" />
 
       {/* Articles list */}
       <ArticleList
