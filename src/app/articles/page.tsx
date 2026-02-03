@@ -169,8 +169,8 @@ function ArticlesContent() {
           )}
         </div>
       </div>
-      {/* Spacer for fixed search bar on mobile - increased height for filters */}
-      <div className="h-44 lg:hidden" />
+      {/* Spacer for fixed search bar on mobile - dynamic height based on active filters */}
+      <div className={`lg:hidden ${(hasStock || gennevilliersOnly || famille) ? 'h-44' : 'h-[136px]'}`} />
 
       {/* Articles list */}
       <ArticleList
