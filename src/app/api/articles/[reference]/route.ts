@@ -17,6 +17,8 @@ export async function GET(
   }
 
   const { reference } = await params;
+  const searchParams = request.nextUrl.searchParams;
+  const fresh = searchParams.get('fresh') === 'true';
 
   if (!reference) {
     return NextResponse.json(
@@ -26,7 +28,7 @@ export async function GET(
   }
 
   try {
-    const article = await SageStockService.getArticleDetail(decodeURIComponent(reference));
+    const article = await SageStockService.getArticleDetail(decodeURIComponent(reference), { fresh });
 
     if (!article) {
       return NextResponse.json(

@@ -16,7 +16,8 @@ import { formatPrice, formatQuantity } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react';
 
 async function fetchArticleDetail(reference: string): Promise<{ success: boolean; data: ArticleDetail }> {
-  const response = await fetch(`/api/articles/${encodeURIComponent(reference)}`);
+  // Toujours demander des données fraîches pour éviter les incohérences avec la liste
+  const response = await fetch(`/api/articles/${encodeURIComponent(reference)}?fresh=true`);
   if (!response.ok) {
     throw new Error('Article non trouvé');
   }
@@ -35,6 +36,8 @@ export default function ArticleDetailPage({ params }: { params: Promise<{ refere
   const { data, isLoading, error, dataUpdatedAt, refetch, isFetching } = useQuery({
     queryKey: ['article', decodedRef],
     queryFn: () => fetchArticleDetail(decodedRef),
+    staleTime: 0, // Données considérées comme périmées immédiatement
+    refetchOnMount: 'always', // Toujours rafraîchir à chaque visite de la page
   });
 
   // Formater la date de mise à jour

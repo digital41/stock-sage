@@ -418,12 +418,16 @@ export const SageStockService = {
   // DETAIL ARTICLE
   // ============================================
 
-  async getArticleDetail(reference: string): Promise<ArticleDetail | null> {
+  async getArticleDetail(reference: string, options: { fresh?: boolean } = {}): Promise<ArticleDetail | null> {
     if (!reference) return null;
 
     const cacheKey = `article:detail:${reference}`;
-    const cached = getCached<ArticleDetail>(cacheKey);
-    if (cached) return cached;
+
+    // Si fresh=true, on bypass le cache pour obtenir les données à jour
+    if (!options.fresh) {
+      const cached = getCached<ArticleDetail>(cacheKey);
+      if (cached) return cached;
+    }
 
     try {
       const pool = await getSqlPool();
